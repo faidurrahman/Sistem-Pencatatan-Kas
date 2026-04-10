@@ -437,32 +437,33 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
       
-      {/* 1. Dedicated, Non-Overlapping Responsive Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm h-16 md:h-20 flex items-center px-4 md:px-8">
-        <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
-          {/* Navbar Left */}
-          <div className="flex items-center space-x-3 md:space-x-4">
-            <div className="p-2 md:p-2.5 bg-blue-600 rounded-xl text-white shadow-md flex-shrink-0">
-              <FileText size={24} className="md:w-7 md:h-7" />
+      {/* 1. Optimized Desktop Header/Navbar */}
+      <nav className="fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm h-20 flex items-center px-6 lg:px-12">
+        <div className="w-full flex items-center justify-between">
+          {/* Navbar Left: Logo and Titles aligned far left */}
+          <div className="flex items-center space-x-4">
+            <div className="p-2.5 bg-blue-600 rounded-xl text-white shadow-md flex-shrink-0">
+              <FileText size={28} />
             </div>
             <div className="flex flex-col justify-center">
-              <h1 className="text-lg md:text-2xl font-bold tracking-tight text-gray-900 leading-tight">
-                Sistem Pencatatan Kas <span className="hidden sm:inline">Operasional</span>
+              <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-gray-900 leading-tight">
+                Sistem Pencatatan Kas Operasional
               </h1>
-              <p className="hidden md:block text-sm text-gray-500 font-medium">
+              <p className="text-sm text-gray-500 font-medium">
                 Laporan Operasional Keuangan
               </p>
             </div>
           </div>
           
-          {/* Navbar Right */}
+          {/* Navbar Right: Logout button aligned far right */}
           {onLogout && (
             <button 
               onClick={onLogout}
-              className="flex items-center space-x-2 bg-gray-100 hover:bg-red-50 text-gray-700 hover:text-red-600 px-3 py-2 md:px-4 md:py-2.5 rounded-xl text-sm font-semibold transition-all border border-transparent hover:border-red-100"
+              className="flex items-center space-x-2 bg-white hover:bg-red-50 text-gray-700 hover:text-red-600 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all border border-gray-200 hover:border-red-200 shadow-sm"
+              title="Keluar dari sistem"
             >
               <LogOut size={18} />
-              <span className="hidden sm:inline">Logout</span>
+              <span>Logout</span>
             </button>
           )}
         </div>
@@ -471,18 +472,18 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
       {/* Global Loading Overlay with Glassmorphism and Escape Hatch */}
       {isLoading && (
         <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white/60 backdrop-blur-md transition-all">
-          <div className="bg-white px-8 py-6 rounded-3xl shadow-2xl flex flex-col items-center space-y-6 border border-gray-100 max-w-sm w-full mx-4 text-center">
+          <div className="bg-white px-8 py-8 rounded-3xl shadow-2xl flex flex-col items-center space-y-6 border border-gray-100 max-w-sm w-full mx-4 text-center">
             <div className="relative">
               <div className="absolute inset-0 bg-blue-100 rounded-full blur-xl opacity-50 animate-pulse"></div>
               <Loader2 className="animate-spin text-blue-600 relative z-10" size={48} strokeWidth={2.5} />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Memproses Data</h3>
-              <p className="text-sm text-gray-500 mt-1">Mohon tunggu sebentar...</p>
+              <h3 className="text-lg font-bold text-gray-900">Memproses data...</h3>
+              <p className="text-sm text-gray-500 mt-1">Mohon tunggu sebentar</p>
             </div>
             <button 
               onClick={() => handleCancelLoading()}
-              className="w-full py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold transition-colors border border-gray-200"
+              className="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold transition-colors border border-gray-200 shadow-sm"
             >
               Batal & Gunakan Data Simulasi
             </button>
@@ -490,13 +491,13 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
         </div>
       )}
 
-      {/* 2. Main Content Area */}
-      <main className="pt-24 md:pt-32 pb-12 px-4 md:px-8 max-w-7xl mx-auto space-y-6 md:space-y-8">
+      {/* 5. Desktop Content Container (with pt-28 to clear the h-20 navbar) */}
+      <main className="pt-28 pb-12 px-6 lg:px-12">
         
         {/* Error Banner */}
         {globalError && (
-          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 md:p-5 flex items-start md:items-center justify-between gap-4 flex-col md:flex-row shadow-sm">
-            <div className="flex items-start md:items-center space-x-3 md:space-x-4">
+          <div className="max-w-7xl mx-auto mb-6 bg-red-50 border border-red-200 rounded-2xl p-5 flex items-center justify-between shadow-sm">
+            <div className="flex items-center space-x-4">
               <div className="p-2 bg-red-100 rounded-full shrink-0">
                 <AlertTriangle className="text-red-600" size={24} />
               </div>
@@ -512,7 +513,7 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
             </div>
             <button 
               onClick={fetchTransactions}
-              className="flex items-center space-x-2 bg-white border border-red-200 text-red-700 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-red-50 transition-colors w-full md:w-auto justify-center shadow-sm"
+              className="flex items-center space-x-2 bg-white border border-red-200 text-red-700 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-red-50 transition-colors shadow-sm"
             >
               <RefreshCw size={16} />
               <span>Coba Hubungkan Ulang</span>
@@ -520,25 +521,25 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
           </div>
         )}
 
-        {/* The Main Body Wrapper */}
-        <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-5 md:p-8 space-y-8">
+        {/* The Main White Card Wrapper */}
+        <div className="max-w-7xl mx-auto bg-white rounded-3xl shadow-lg border border-gray-100 p-8 space-y-8">
           
-          {/* 3. Redesigned Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+          {/* 2. Horizontal Summary Cards Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Card: Total Pemasukan */}
             <div 
               onClick={() => selectedMonth && setTypeFilter('Pemasukan')}
-              className={`bg-white rounded-3xl p-6 shadow-sm border transition-all cursor-pointer hover:shadow-md hover:-translate-y-1 ${
+              className={`bg-white rounded-2xl p-6 shadow-sm border transition-all cursor-pointer hover:shadow-md hover:-translate-y-1 ${
                 typeFilter === 'Pemasukan' ? 'border-green-500 ring-4 ring-green-50' : 'border-gray-100 hover:border-green-200'
               } ${!selectedMonth && 'opacity-50 pointer-events-none'}`}
             >
               <div className="flex items-center space-x-5">
-                <div className="p-4 bg-green-50 text-green-600 rounded-2xl shadow-inner">
-                  <ArrowDownCircle size={32} strokeWidth={2.5} />
+                <div className="p-4 bg-green-50 text-green-600 rounded-2xl shadow-inner shrink-0">
+                  <ArrowDownCircle size={36} strokeWidth={2.5} />
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total Pemasukan</p>
-                  <p className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">{formatRupiah(summary.totalIn)}</p>
+                <div className="overflow-hidden">
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">Total Pemasukan</p>
+                  <p className="text-3xl font-extrabold text-gray-900 tracking-tight truncate">{formatRupiah(summary.totalIn)}</p>
                 </div>
               </div>
             </div>
@@ -546,17 +547,17 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
             {/* Card: Total Pengeluaran */}
             <div 
               onClick={() => selectedMonth && setTypeFilter('Pengeluaran')}
-              className={`bg-white rounded-3xl p-6 shadow-sm border transition-all cursor-pointer hover:shadow-md hover:-translate-y-1 ${
+              className={`bg-white rounded-2xl p-6 shadow-sm border transition-all cursor-pointer hover:shadow-md hover:-translate-y-1 ${
                 typeFilter === 'Pengeluaran' ? 'border-red-500 ring-4 ring-red-50' : 'border-gray-100 hover:border-red-200'
               } ${!selectedMonth && 'opacity-50 pointer-events-none'}`}
             >
               <div className="flex items-center space-x-5">
-                <div className="p-4 bg-red-50 text-red-600 rounded-2xl shadow-inner">
-                  <ArrowUpCircle size={32} strokeWidth={2.5} />
+                <div className="p-4 bg-red-50 text-red-600 rounded-2xl shadow-inner shrink-0">
+                  <ArrowUpCircle size={36} strokeWidth={2.5} />
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total Pengeluaran</p>
-                  <p className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">{formatRupiah(summary.totalOut)}</p>
+                <div className="overflow-hidden">
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">Total Pengeluaran</p>
+                  <p className="text-3xl font-extrabold text-gray-900 tracking-tight truncate">{formatRupiah(summary.totalOut)}</p>
                 </div>
               </div>
             </div>
@@ -564,17 +565,17 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
             {/* Card: Saldo Saat Ini */}
             <div 
               onClick={() => selectedMonth && setTypeFilter('All')}
-              className={`bg-white rounded-3xl p-6 shadow-sm border transition-all cursor-pointer hover:shadow-md hover:-translate-y-1 ${
+              className={`bg-white rounded-2xl p-6 shadow-sm border transition-all cursor-pointer hover:shadow-md hover:-translate-y-1 ${
                 typeFilter === 'All' && selectedMonth ? 'border-blue-500 ring-4 ring-blue-50' : 'border-gray-100 hover:border-blue-200'
               } ${!selectedMonth && 'opacity-50 pointer-events-none'}`}
             >
               <div className="flex items-center space-x-5">
-                <div className={`p-4 rounded-2xl shadow-inner ${summary.balance >= 0 ? 'bg-blue-50 text-blue-600' : 'bg-red-50 text-red-600'}`}>
-                  <Wallet size={32} strokeWidth={2.5} />
+                <div className={`p-4 rounded-2xl shadow-inner shrink-0 ${summary.balance >= 0 ? 'bg-blue-50 text-blue-600' : 'bg-red-50 text-red-600'}`}>
+                  <Wallet size={36} strokeWidth={2.5} />
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Saldo Saat Ini</p>
-                  <p className={`text-2xl md:text-3xl font-extrabold tracking-tight ${summary.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <div className="overflow-hidden">
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">Saldo Saat Ini</p>
+                  <p className={`text-3xl font-extrabold tracking-tight truncate ${summary.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {formatRupiah(summary.balance)}
                   </p>
                 </div>
@@ -582,10 +583,11 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
             </div>
           </div>
 
-          {/* 4. Redesigned Controls and Filters */}
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-gray-50/50 p-2 rounded-2xl border border-gray-100">
-            <div className="flex items-center space-x-3 w-full lg:w-auto p-2">
-              <div className="p-2.5 bg-white shadow-sm border border-gray-200 rounded-xl text-gray-500">
+          {/* 3. Streamlined Controls Container */}
+          <div className="flex flex-col lg:flex-row justify-between items-center gap-4 bg-gray-50/80 p-3 rounded-2xl border border-gray-200">
+            {/* Left: Filter */}
+            <div className="flex items-center space-x-3 w-full lg:w-auto">
+              <div className="p-3 bg-white shadow-sm border border-gray-200 rounded-xl text-gray-500 shrink-0">
                 <Calendar size={20} strokeWidth={2.5} />
               </div>
               <select 
@@ -594,7 +596,7 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
                   setSelectedMonth(e.target.value);
                   setTypeFilter('All');
                 }}
-                className="flex-1 lg:w-64 bg-white border border-gray-200 text-gray-900 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-50 focus:border-blue-500 block p-3 outline-none transition-all shadow-sm cursor-pointer"
+                className="flex-1 lg:w-72 bg-white border border-gray-200 text-gray-900 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-50 focus:border-blue-500 block p-3.5 outline-none transition-all shadow-sm cursor-pointer"
               >
                 <option value="" disabled>-- Pilih Bulan --</option>
                 <option value="all">Semua Bulan</option>
@@ -604,17 +606,18 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
               </select>
             </div>
 
-            <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full lg:w-auto p-2">
+            {/* Right: Add Buttons */}
+            <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 w-full lg:w-auto">
               <button 
                 onClick={() => handleOpenAdd('Pemasukan')}
-                className="flex-1 sm:flex-none flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl text-sm font-bold transition-all shadow-sm hover:shadow-md active:scale-95"
+                className="flex-1 sm:flex-none flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3.5 rounded-xl text-sm font-bold transition-all shadow-sm hover:shadow-md active:scale-95"
               >
                 <Plus size={18} strokeWidth={2.5} />
                 <span>Tambah Data Pemasukan</span>
               </button>
               <button 
                 onClick={() => handleOpenAdd('Pengeluaran')}
-                className="flex-1 sm:flex-none flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-xl text-sm font-bold transition-all shadow-sm hover:shadow-md active:scale-95"
+                className="flex-1 sm:flex-none flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3.5 rounded-xl text-sm font-bold transition-all shadow-sm hover:shadow-md active:scale-95"
               >
                 <Plus size={18} strokeWidth={2.5} />
                 <span>Tambah Data Pengeluaran</span>
@@ -622,18 +625,18 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
             </div>
           </div>
 
-          {/* 5. Redesigned Table Area (CRUD Features) */}
+          {/* 4. Wide-Screen Table Layout (CRUD Features) */}
           <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-            <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/80 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-              <h2 className="text-lg font-extrabold text-gray-900 tracking-tight flex items-center space-x-2">
+            <div className="px-6 py-5 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+              <h2 className="text-lg font-extrabold text-gray-900 tracking-tight flex items-center space-x-3">
                 <span>Data Transaksi Keuangan (CRUD)</span>
                 {typeFilter !== 'All' && (
-                  <span className={`text-xs px-2.5 py-1 rounded-lg ${typeFilter === 'Pemasukan' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                    {typeFilter}
+                  <span className={`text-xs px-3 py-1 rounded-lg ${typeFilter === 'Pemasukan' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                    Filter: {typeFilter}
                   </span>
                 )}
               </h2>
-              <span className="text-sm text-gray-600 font-bold bg-white border border-gray-200 px-4 py-1.5 rounded-xl shadow-sm inline-block w-fit">
+              <span className="text-sm text-gray-600 font-bold bg-white border border-gray-200 px-4 py-1.5 rounded-xl shadow-sm">
                 {displayedTransactions.length} Data Ditemukan
               </span>
             </div>
@@ -647,15 +650,15 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-white text-gray-400 text-xs uppercase tracking-widest border-b border-gray-200">
-                      <th className="px-6 py-4 font-bold">Tanggal</th>
-                      <th className="px-6 py-4 font-bold">Tipe</th>
-                      <th className="px-6 py-4 font-bold">Keterangan</th>
-                      <th className="px-6 py-4 font-bold text-right">Pemasukan</th>
-                      <th className="px-6 py-4 font-bold text-right">Pengeluaran</th>
-                      <th className="px-6 py-4 font-bold text-right">Saldo Berjalan</th>
-                      <th className="px-6 py-4 font-bold">Catatan</th>
-                      <th className="px-6 py-4 font-bold text-center">Aksi</th>
+                    <tr className="bg-white text-gray-500 text-xs uppercase tracking-widest border-b border-gray-200">
+                      <th className="px-6 py-4 font-bold whitespace-nowrap">Tanggal</th>
+                      <th className="px-6 py-4 font-bold whitespace-nowrap">Tipe</th>
+                      <th className="px-6 py-4 font-bold min-w-[200px]">Keterangan</th>
+                      <th className="px-6 py-4 font-bold text-right whitespace-nowrap">Pemasukan</th>
+                      <th className="px-6 py-4 font-bold text-right whitespace-nowrap">Pengeluaran</th>
+                      <th className="px-6 py-4 font-bold text-right whitespace-nowrap">Saldo Berjalan</th>
+                      <th className="px-6 py-4 font-bold min-w-[200px]">Catatan</th>
+                      <th className="px-6 py-4 font-bold text-center whitespace-nowrap">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -675,7 +678,7 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
                           <div className="flex items-center space-x-2">
                             <span>{tx.keterangan}</span>
                             {!tx.isIncluded && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-gray-200 text-gray-500 uppercase tracking-wider">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-gray-200 text-gray-500 uppercase tracking-wider shrink-0">
                                 Dikecualikan
                               </span>
                             )}
@@ -692,22 +695,22 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
                         }`}>
                           {tx.isIncluded ? formatRupiah(tx.saldoBerjalan) : <span className="text-gray-300">-</span>}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500 italic max-w-[200px] truncate">
+                        <td className="px-6 py-4 text-sm text-gray-500 italic">
                           {tx.catatan || '-'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                          <div className="flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex items-center justify-center space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button 
                               onClick={() => handleOpenEdit(tx)}
                               className="p-2 bg-white border border-gray-200 rounded-lg text-blue-600 hover:bg-blue-50 hover:border-blue-200 transition-all shadow-sm"
-                              title="Edit"
+                              title="Edit Transaksi"
                             >
                               <Edit2 size={16} strokeWidth={2.5} />
                             </button>
                             <button 
                               onClick={() => setDeleteId(tx.id)}
                               className="p-2 bg-white border border-gray-200 rounded-lg text-red-600 hover:bg-red-50 hover:border-red-200 transition-all shadow-sm"
-                              title="Hapus"
+                              title="Hapus Transaksi"
                             >
                               <Trash2 size={16} strokeWidth={2.5} />
                             </button>
@@ -744,6 +747,7 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
               <button 
                 onClick={() => setIsFormOpen(false)}
                 className="text-gray-400 hover:text-gray-700 transition-colors p-2 rounded-full hover:bg-gray-200"
+                title="Tutup"
               >
                 <X size={20} strokeWidth={2.5} />
               </button>
