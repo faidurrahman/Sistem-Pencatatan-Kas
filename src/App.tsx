@@ -150,7 +150,8 @@ export default function FinanceApp() {
             keterangan: item.keterangan || 'Tanpa Keterangan',
             pemasukan: Number(item.pemasukan) || 0,
             pengeluaran: Number(item.pengeluaran) || 0,
-            isIncluded: item.isIncluded === true || item.isIncluded === 'true' || item.isIncluded === 'TRUE'
+            isIncluded: item.isIncluded === true || item.isIncluded === 'true' || item.isIncluded === 'TRUE',
+            catatan: item.catatan || ''
           }));
           setTransactions(formattedData);
         } else {
