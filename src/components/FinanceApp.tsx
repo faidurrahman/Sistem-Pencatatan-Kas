@@ -698,8 +698,8 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
                         <td className="px-6 py-4 text-sm text-gray-500 italic">
                           {tx.catatan || '-'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                          <div className="flex items-center justify-center space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-center min-w-[120px]">
+                          <div className="flex items-center justify-center space-x-3">
                             <button 
                               onClick={() => handleOpenEdit(tx)}
                               className="p-2 bg-white border border-gray-200 rounded-lg text-blue-600 hover:bg-blue-50 hover:border-blue-200 transition-all shadow-sm"
