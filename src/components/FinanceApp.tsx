@@ -529,17 +529,17 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
             {/* Card: Total Pemasukan */}
             <div 
               onClick={() => selectedMonth && setTypeFilter('Pemasukan')}
-              className={`bg-white rounded-2xl p-6 shadow-sm border transition-all cursor-pointer hover:shadow-md hover:-translate-y-1 ${
+              className={`bg-white rounded-2xl p-4 md:p-6 shadow-sm border transition-all cursor-pointer hover:shadow-md hover:-translate-y-1 ${
                 typeFilter === 'Pemasukan' ? 'border-green-500 ring-4 ring-green-50' : 'border-gray-100 hover:border-green-200'
               } ${!selectedMonth && 'opacity-50 pointer-events-none'}`}
             >
-              <div className="flex items-center space-x-5">
+              <div className="flex items-center space-x-3 md:space-x-5">
                 <div className="p-4 bg-green-50 text-green-600 rounded-2xl shadow-inner shrink-0">
                   <ArrowDownCircle size={36} strokeWidth={2.5} />
                 </div>
                 <div className="overflow-hidden">
-                  <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">Total Pemasukan</p>
-                  <p className="text-3xl font-extrabold text-gray-900 tracking-tight truncate">{formatRupiah(summary.totalIn)}</p>
+                  <p className="text-xs md:text-sm font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">Total Pemasukan</p>
+                  <p className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-gray-900 tracking-tight truncate">{formatRupiah(summary.totalIn)}</p>
                 </div>
               </div>
             </div>
@@ -547,17 +547,17 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
             {/* Card: Total Pengeluaran */}
             <div 
               onClick={() => selectedMonth && setTypeFilter('Pengeluaran')}
-              className={`bg-white rounded-2xl p-6 shadow-sm border transition-all cursor-pointer hover:shadow-md hover:-translate-y-1 ${
+              className={`bg-white rounded-2xl p-4 md:p-6 shadow-sm border transition-all cursor-pointer hover:shadow-md hover:-translate-y-1 ${
                 typeFilter === 'Pengeluaran' ? 'border-red-500 ring-4 ring-red-50' : 'border-gray-100 hover:border-red-200'
               } ${!selectedMonth && 'opacity-50 pointer-events-none'}`}
             >
-              <div className="flex items-center space-x-5">
+              <div className="flex items-center space-x-3 md:space-x-5">
                 <div className="p-4 bg-red-50 text-red-600 rounded-2xl shadow-inner shrink-0">
                   <ArrowUpCircle size={36} strokeWidth={2.5} />
                 </div>
                 <div className="overflow-hidden">
-                  <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">Total Pengeluaran</p>
-                  <p className="text-3xl font-extrabold text-gray-900 tracking-tight truncate">{formatRupiah(summary.totalOut)}</p>
+                  <p className="text-xs md:text-sm font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">Total Pengeluaran</p>
+                  <p className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-gray-900 tracking-tight truncate">{formatRupiah(summary.totalOut)}</p>
                 </div>
               </div>
             </div>
@@ -565,17 +565,17 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
             {/* Card: Saldo Saat Ini */}
             <div 
               onClick={() => selectedMonth && setTypeFilter('All')}
-              className={`bg-white rounded-2xl p-6 shadow-sm border transition-all cursor-pointer hover:shadow-md hover:-translate-y-1 ${
+              className={`bg-white rounded-2xl p-4 md:p-6 shadow-sm border transition-all cursor-pointer hover:shadow-md hover:-translate-y-1 ${
                 typeFilter === 'All' && selectedMonth ? 'border-blue-500 ring-4 ring-blue-50' : 'border-gray-100 hover:border-blue-200'
               } ${!selectedMonth && 'opacity-50 pointer-events-none'}`}
             >
-              <div className="flex items-center space-x-5">
+              <div className="flex items-center space-x-3 md:space-x-5">
                 <div className={`p-4 rounded-2xl shadow-inner shrink-0 ${summary.balance >= 0 ? 'bg-blue-50 text-blue-600' : 'bg-red-50 text-red-600'}`}>
                   <Wallet size={36} strokeWidth={2.5} />
                 </div>
                 <div className="overflow-hidden">
-                  <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">Saldo Saat Ini</p>
-                  <p className={`text-3xl font-extrabold tracking-tight truncate ${summary.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <p className="text-xs md:text-sm font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">Saldo Saat Ini</p>
+                  <p className={`text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight truncate ${summary.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {formatRupiah(summary.balance)}
                   </p>
                 </div>
