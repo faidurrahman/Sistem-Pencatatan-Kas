@@ -1,0 +1,5 @@
+{
+  "name": "Sistem Pencatatan Kas Operasional",
+  "description": "Aplikasi untuk memantau laporan keuangan sederhana yang mencakup pemasukan dan pengeluaran dengan saldo berjalan.",
+  "requestFramePermissions": []
+}
