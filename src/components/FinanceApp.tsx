@@ -438,18 +438,18 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
     <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
       
       {/* 1. Optimized Desktop Header/Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm h-20 flex items-center px-6 lg:px-12">
-        <div className="w-full flex items-center justify-between">
+      <nav className="fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm h-20 flex items-center px-4 sm:px-6 lg:px-12">
+        <div className="w-full flex items-center justify-between gap-2">
           {/* Navbar Left: Logo and Titles aligned far left */}
-          <div className="flex items-center space-x-4">
-            <div className="p-2.5 bg-blue-600 rounded-xl text-white shadow-md flex-shrink-0">
-              <FileText size={28} />
+          <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4 overflow-hidden">
+            <div className="p-1.5 sm:p-2 lg:p-2.5 bg-blue-600 rounded-lg lg:rounded-xl text-white shadow-md flex-shrink-0">
+              <FileText className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7" />
             </div>
-            <div className="flex flex-col justify-center">
-              <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-gray-900 leading-tight">
-                Sistem Pencatatan Kas Operasional
+            <div className="flex flex-col justify-center overflow-hidden">
+              <h1 className="text-sm sm:text-base lg:text-2xl font-bold tracking-tight text-gray-900 leading-tight truncate">
+                Sistem Pencatatan Kas <span className="hidden sm:inline">Operasional</span>
               </h1>
-              <p className="text-sm text-gray-500 font-medium">
+              <p className="text-[10px] sm:text-xs lg:text-sm text-gray-500 font-medium truncate">
                 Laporan Operasional Keuangan
               </p>
             </div>
@@ -459,11 +459,11 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
           {onLogout && (
             <button 
               onClick={onLogout}
-              className="flex items-center space-x-2 bg-white hover:bg-red-50 text-gray-700 hover:text-red-600 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all border border-gray-200 hover:border-red-200 shadow-sm"
+              className="flex items-center space-x-1.5 sm:space-x-2 bg-white hover:bg-red-50 text-gray-700 hover:text-red-600 px-3 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all border border-gray-200 hover:border-red-200 shadow-sm shrink-0"
               title="Keluar dari sistem"
             >
-              <LogOut size={18} />
-              <span>Logout</span>
+              <LogOut size={16} className="sm:w-[18px] sm:h-[18px]" />
+              <span className="hidden min-[400px]:inline">Logout</span>
             </button>
           )}
         </div>
