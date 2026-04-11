@@ -113,6 +113,7 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<'add' | 'edit'>('add');
   const [formData, setFormData] = useState<Partial<Transaction & { nominal: string }>>({});
+  const [displayNominal, setDisplayNominal] = useState<string>('');
   const [formError, setFormError] = useState<string>('');
 
   // State: Delete Confirmation
@@ -267,18 +268,31 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
       isIncluded: true,
       catatan: ''
     });
+    setDisplayNominal('');
     setFormError('');
     setIsFormOpen(true);
   };
 
   const handleOpenEdit = (t: Transaction) => {
     setFormMode('edit');
+    const rawNominal = (t.tipe === 'Pemasukan' ? t.pemasukan : t.pengeluaran).toString();
     setFormData({
       ...t,
-      nominal: (t.tipe === 'Pemasukan' ? t.pemasukan : t.pengeluaran).toString()
+      nominal: rawNominal
     });
+    setDisplayNominal(rawNominal ? parseInt(rawNominal, 10).toLocaleString('id-ID') : '');
     setFormError('');
     setIsFormOpen(true);
+  };
+
+  const handleNominalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/\D/g, '');
+    setFormData({ ...formData, nominal: rawValue });
+    if (rawValue) {
+      setDisplayNominal(parseInt(rawValue, 10).toLocaleString('id-ID'));
+    } else {
+      setDisplayNominal('');
+    }
   };
 
   const handleSaveTransaction = async () => {
@@ -799,11 +813,10 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
               <div className="space-y-2">
                 <label className="text-sm font-bold text-gray-700">Jumlah Nominal (Rp)</label>
                 <input 
-                  type="number" 
+                  type="text" 
                   placeholder="0"
-                  min="0"
-                  value={formData.nominal || ''}
-                  onChange={(e) => setFormData({...formData, nominal: e.target.value})}
+                  value={displayNominal}
+                  onChange={handleNominalChange}
                   className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-50 focus:border-blue-500 block p-3 outline-none transition-all"
                 />
               </div>
