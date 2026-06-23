@@ -134,7 +134,7 @@ export default function App() {
              activeTab === 'camat' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          Kas Khusus Ibu Camat
+          Kas Ibu Camat
         </button>
       </div>
       {activeTab === 'umum' ? (
