@@ -12,11 +12,15 @@ import {
   Calendar,
   Loader2,
   RefreshCw,
-  LogOut
+  LogOut,
+  Image as ImageIcon,
+  Upload,
+  Link,
+  Eye
 } from 'lucide-react';
 
 // --- API URL ---
-const API_URL = 'https://script.google.com/macros/s/AKfycbzWKeuFQGymd6BoHduTZqciinAivVGz3rBda1tjyhr1xaBGUPC4KTYRl-bbqGxNyliI-g/exec?sheet=Pengeluaran_Camat';
+const API_URL = 'https://script.google.com/macros/s/AKfycbyC2XBMtO1XhIVqi_YrpjX2JRRofSBj1khxL_yqQltY3Wc7BDbCR9fySA4BNuZMCcMDIQ/exec?sheet=Pengeluaran_Camat';
 
 // --- Types ---
 interface Transaction {
@@ -28,6 +32,7 @@ interface Transaction {
   pengeluaran: number;
   isIncluded: boolean;
   catatan?: string;
+  notaUrl?: string;
 }
 
 interface FinanceAppProps {
@@ -116,8 +121,15 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
   const [displayNominal, setDisplayNominal] = useState<string>('');
   const [formError, setFormError] = useState<string>('');
 
+  // State: Image Upload
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageBase64, setImageBase64] = useState<string>('');
+
   // State: Delete Confirmation
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  // State: View Transaction
+  const [viewTransaction, setViewTransaction] = useState<Transaction | null>(null);
 
   // Refs for aborting requests
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -166,7 +178,8 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
             pemasukan: Number(item.pemasukan) || 0,
             pengeluaran: Number(item.pengeluaran) || 0,
             isIncluded: item.isIncluded === true || item.isIncluded === 'true' || item.isIncluded === 'TRUE',
-            catatan: item.catatan || ''
+            catatan: item.catatan || '',
+            notaUrl: item.notaUrl || ''
           }));
           setTransactions(formattedData);
         } else {
@@ -237,6 +250,69 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
 
   // --- Handlers ---
 
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          const MAX_DIMENSION = 600;
+          if (width > height) {
+            if (width > MAX_DIMENSION) {
+              height = Math.round((height * MAX_DIMENSION) / width);
+              width = MAX_DIMENSION;
+            }
+          } else {
+            if (height > MAX_DIMENSION) {
+              width = Math.round((width * MAX_DIMENSION) / height);
+              height = MAX_DIMENSION;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
+            const base64 = dataUrl.split(',')[1];
+            
+            if (base64.length > 45000) {
+                 const dataUrlSmaller = canvas.toDataURL('image/jpeg', 0.3);
+                 resolve(dataUrlSmaller.split(',')[1]);
+                 return;
+            }
+            resolve(base64);
+          } else {
+            resolve(event.target?.result?.toString().split(',')[1] || '');
+          }
+        };
+        img.src = event.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        setFormError("Ukuran file maksimal 5MB");
+        return;
+      }
+      setImageFile(file);
+      const base64String = await compressImage(file);
+      setImageBase64(base64String);
+    } else {
+      setImageFile(null);
+      setImageBase64('');
+    }
+  };
+
   const handleOpenAdd = (tipe: 'Pemasukan' | 'Pengeluaran') => {
     setFormMode('add');
     setFormData({
@@ -248,6 +324,8 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
       catatan: ''
     });
     setDisplayNominal('');
+    setImageFile(null);
+    setImageBase64('');
     setFormError('');
     setIsFormOpen(true);
   };
@@ -260,6 +338,8 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
       nominal: rawNominal
     });
     setDisplayNominal(rawNominal ? parseInt(rawNominal, 10).toLocaleString('id-ID') : '');
+    setImageFile(null);
+    setImageBase64('');
     setFormError('');
     setIsFormOpen(true);
   };
@@ -292,7 +372,8 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
       pemasukan: isPemasukan ? nominalNum : 0,
       pengeluaran: !isPemasukan ? nominalNum : 0,
       isIncluded: formData.isIncluded ?? true,
-      catatan: formData.catatan || ''
+      catatan: formData.catatan || '',
+      notaUrl: imageBase64 ? `data:image/jpeg;base64,${imageBase64}` : (formMode === 'edit' ? formData.notaUrl : '')
     };
 
     if (isUsingFallback) {
@@ -315,6 +396,13 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
       }
     }, 15000);
 
+    const payloadData = {
+      ...newTransaction,
+      imageBase64: imageBase64 || undefined,
+      imageMimeType: imageFile?.type || undefined,
+      imageFileName: imageFile?.name || undefined
+    };
+
     try {
       const response = await fetch(API_URL, {
         method: 'POST',
@@ -323,7 +411,7 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
         },
         body: JSON.stringify({
           action: formMode === 'add' ? 'create' : 'update',
-          data: newTransaction
+          data: payloadData
         }),
         signal: controller.signal,
         redirect: 'follow'
@@ -333,12 +421,20 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
       try {
         const json = JSON.parse(text);
         if (json.status === 'success') {
+          let updatedTransaction = { ...newTransaction };
+          const responseNotaUrl = json.notaUrl || (json.data && json.data.notaUrl);
+          if (responseNotaUrl) {
+            updatedTransaction.notaUrl = responseNotaUrl;
+          }
+
           if (formMode === 'add') {
-            setTransactions([...transactions, newTransaction]);
+            setTransactions([...transactions, updatedTransaction]);
           } else {
-            setTransactions(transactions.map(t => t.id === newTransaction.id ? newTransaction : t));
+            setTransactions(transactions.map(t => t.id === updatedTransaction.id ? updatedTransaction : t));
           }
           setIsFormOpen(false);
+          setImageFile(null);
+          setImageBase64('');
         } else {
           setFormError(json.message || 'Gagal menyimpan data ke server');
         }
@@ -615,6 +711,11 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
                                 Dikecualikan
                               </span>
                             )}
+                            {tx.notaUrl && (
+                              <a href={tx.notaUrl} target="_blank" rel="noopener noreferrer" title="Lihat Foto Nota">
+                                <ImageIcon className="w-4 h-4 text-blue-500 hover:text-blue-700 transition-colors" />
+                              </a>
+                            )}
                           </div>
                         </td>
                         <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-right font-bold text-red-600">
@@ -625,6 +726,13 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
                         </td>
                         <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-center min-w-[120px]">
                           <div className="flex items-center justify-center space-x-2 sm:space-x-3">
+                            <button 
+                              onClick={() => setViewTransaction(tx)}
+                              className="p-1.5 sm:p-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
+                              title="Lihat Detail Transaksi"
+                            >
+                              <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" strokeWidth={2.5} />
+                            </button>
                             <button 
                               onClick={() => handleOpenEdit(tx)}
                               className="p-1.5 sm:p-2 bg-white border border-gray-200 rounded-lg text-blue-600 hover:bg-blue-50 hover:border-blue-200 transition-all shadow-sm"
@@ -721,6 +829,39 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
               </div>
 
               <div className="space-y-1.5">
+                <label className="text-xs sm:text-sm font-bold text-gray-700">Foto Nota (Opsional)</label>
+                <div className="flex items-center space-x-3">
+                  <label className="flex items-center justify-center space-x-2 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-600 px-4 py-2.5 rounded-xl cursor-pointer transition-colors shadow-sm w-full sm:w-auto">
+                    <Upload className="w-4 h-4 text-gray-500" />
+                    <span className="text-xs sm:text-sm font-semibold truncate">
+                      {imageFile ? imageFile.name : 'Pilih Foto...'}
+                    </span>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleImageChange}
+                      className="hidden" 
+                    />
+                  </label>
+                  {imageBase64 && (
+                    <div className="h-10 w-10 sm:h-11 sm:w-11 shrink-0 rounded-lg overflow-hidden border border-gray-200 shadow-sm relative group">
+                       {/* Prevent clicking the image from opening the file dialog by placing it outside the label */}
+                       <img src={`data:${imageFile?.type};base64,${imageBase64}`} alt="Preview" className="w-full h-full object-cover" />
+                       <button onClick={() => { setImageFile(null); setImageBase64(''); }} className="absolute inset-0 bg-black/50 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                         <X className="w-4 h-4" />
+                       </button>
+                    </div>
+                  )}
+                  {!imageBase64 && formMode === 'edit' && formData.notaUrl && (
+                     <a href={formData.notaUrl} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-1 text-xs text-blue-600 hover:underline">
+                        <Link className="w-3 h-3" />
+                        <span>Lihat Nota Tersimpan</span>
+                     </a>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
                 <label className="text-xs sm:text-sm font-bold text-gray-700">Catatan (Opsional)</label>
                 <textarea 
                   rows={2}
@@ -766,6 +907,96 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
                 className="px-4 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50"
               >
                 Simpan Data
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- View Detail Modal --- */}
+      {viewTransaction && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-gray-100 flex flex-col max-h-[90vh]">
+            <div className="px-4 py-4 sm:px-6 sm:py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
+              <h3 className="text-base sm:text-lg font-extrabold text-gray-900 tracking-tight flex items-center space-x-2">
+                <FileText className="w-5 h-5 text-gray-500" />
+                <span>Detail Transaksi</span>
+              </h3>
+              <button 
+                onClick={() => setViewTransaction(null)}
+                className="text-gray-400 hover:text-gray-700 transition-colors p-1.5 sm:p-2 rounded-full hover:bg-gray-200"
+                title="Tutup"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-4 sm:p-6 overflow-y-auto">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <p className="text-xs text-gray-500 font-bold mb-1">Keterangan</p>
+                    <p className="font-semibold text-gray-900">{viewTransaction.keterangan}</p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <p className="text-xs text-gray-500 font-bold mb-1">Tanggal</p>
+                    <p className="font-semibold text-gray-900">{viewTransaction.tanggal}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-green-50 p-3 rounded-xl border border-green-100">
+                    <p className="text-xs text-green-600 font-bold mb-1">Pemasukan</p>
+                    <p className="font-bold text-green-700 text-lg">Rp {viewTransaction.pemasukan.toLocaleString('id-ID')}</p>
+                  </div>
+                  <div className="bg-red-50 p-3 rounded-xl border border-red-100">
+                    <p className="text-xs text-red-600 font-bold mb-1">Pengeluaran</p>
+                    <p className="font-bold text-red-700 text-lg">Rp {viewTransaction.pengeluaran.toLocaleString('id-ID')}</p>
+                  </div>
+                </div>
+
+                {viewTransaction.catatan && (
+                  <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <p className="text-xs text-gray-500 font-bold mb-1">Catatan</p>
+                    <p className="font-medium text-gray-800 whitespace-pre-wrap">{viewTransaction.catatan}</p>
+                  </div>
+                )}
+
+                {viewTransaction.notaUrl && (
+                  <div className="space-y-2 mt-4">
+                    <p className="text-xs text-gray-500 font-bold flex items-center">
+                      <ImageIcon className="w-3.5 h-3.5 mr-1.5" /> Foto Nota
+                    </p>
+                    <div className="border border-gray-200 rounded-xl overflow-hidden bg-gray-50 text-center relative group">
+                      <img 
+                        src={viewTransaction.notaUrl} 
+                        alt="Nota" 
+                        className="w-full h-auto max-h-[50vh] object-contain transition-transform duration-300 mx-auto"
+                      />
+                      <a 
+                        href={viewTransaction.notaUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Buka Gambar Resolusi Penuh"
+                      >
+                         <div className="bg-white text-gray-900 px-4 py-2 font-bold text-sm rounded-lg shadow-lg hover:scale-105 transition-transform flex items-center space-x-2">
+                           <Link className="w-4 h-4"/>
+                           <span>Buka Gambar Penuh</span>
+                         </div>
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="px-4 py-4 sm:px-6 sm:py-4 border-t border-gray-100 bg-gray-50/50 flex justify-end shrink-0">
+              <button 
+                onClick={() => setViewTransaction(null)}
+                className="px-5 py-2.5 text-sm font-bold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors shadow-sm"
+              >
+                Tutup
               </button>
             </div>
           </div>
