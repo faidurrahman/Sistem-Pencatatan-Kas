@@ -102,6 +102,26 @@ const parseDateFromAPI = (dateVal: any): string => {
   }
 };
 
+const getRenderableImageUrl = (url: string | undefined): string => {
+  if (!url) return '';
+  if (url.startsWith('data:image')) return url;
+  
+  // Format Drive URL to direct view URL
+  // Matches https://drive.google.com/file/d/FILE_ID/view
+  const dMatch = url.match(/\/d\/([^/]+)/);
+  if (dMatch && dMatch[1]) {
+    return `https://drive.google.com/uc?export=view&id=${dMatch[1]}`;
+  }
+  
+  // Matches https://drive.google.com/open?id=FILE_ID
+  const idMatch = url.match(/[?&]id=([^&]+)/);
+  if (idMatch && idMatch[1]) {
+    return `https://drive.google.com/uc?export=view&id=${idMatch[1]}`;
+  }
+  
+  return url;
+};
+
 // --- Main Component ---
 export default function FinanceApp({ onLogout }: FinanceAppProps) {
   // State: Data
@@ -113,6 +133,7 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
   // State: Filters
   const [startDate, setStartDate] = useState<string>(''); 
   const [endDate, setEndDate] = useState<string>('');
+  const [typeFilter, setTypeFilter] = useState<'All' | 'Pemasukan' | 'Pengeluaran'>('All');
 
   // State: Modal Form
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -233,20 +254,36 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
       dateFiltered = dateFiltered.filter(t => t.tanggal <= endDate);
     }
 
+    let totalIn = 0;
     let totalOut = 0;
     dateFiltered.forEach(t => {
-      if (t.isIncluded && t.tipe === 'Pengeluaran') {
-        totalOut += t.pengeluaran;
+      if (t.isIncluded) {
+        if (t.tipe === 'Pemasukan') totalIn += t.pemasukan;
+        if (t.tipe === 'Pengeluaran') totalOut += t.pengeluaran;
       }
     });
+    const balance = totalIn - totalOut;
 
-    const sorted = [...dateFiltered].filter(t => t.tipe === 'Pengeluaran').sort((a, b) => a.tanggal.localeCompare(b.tanggal));
+    let typeFiltered = dateFiltered;
+    if (typeFilter !== 'All') {
+      typeFiltered = dateFiltered.filter(t => t.tipe === typeFilter);
+    }
+
+    const sorted = [...typeFiltered].sort((a, b) => a.tanggal.localeCompare(b.tanggal));
+
+    let currentBalance = 0;
+    const processed = sorted.map(t => {
+      if (t.isIncluded) {
+        currentBalance += t.pemasukan - t.pengeluaran;
+      }
+      return { ...t, balance: currentBalance };
+    });
 
     return {
-      displayedTransactions: sorted,
-      summary: { totalOut }
+      displayedTransactions: processed,
+      summary: { totalIn, totalOut, balance }
     };
-  }, [transactions, startDate, endDate]);
+  }, [transactions, startDate, endDate, typeFilter]);
 
   // --- Handlers ---
 
@@ -613,11 +650,32 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
         {/* The Main White Card Wrapper */}
         <div className="max-w-7xl mx-auto bg-white rounded-2xl sm:rounded-3xl shadow-lg border border-gray-100 p-4 sm:p-8 space-y-6 sm:space-y-8">
           
-          {/* 2. Single Summary Card Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-1 gap-4 sm:gap-6">
+          {/* 2. Horizontal Summary Cards Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+            {/* Card: Total Pemasukan */}
+            <div 
+              onClick={() => setTypeFilter('Pemasukan')}
+              className={`bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-6 shadow-sm border transition-all cursor-pointer hover:shadow-md hover:-translate-y-1 ${
+                typeFilter === 'Pemasukan' ? 'border-green-500 ring-4 ring-green-50' : 'border-gray-100 hover:border-green-200'
+              }`}
+            >
+              <div className="flex items-center space-x-3 sm:space-x-5">
+                <div className="p-2.5 sm:p-4 bg-green-50 text-green-600 rounded-xl sm:rounded-2xl shadow-inner shrink-0">
+                  <ArrowDownCircle className="w-6 h-6 sm:w-9 sm:h-9" strokeWidth={2.5} />
+                </div>
+                <div className="overflow-hidden">
+                  <p className="text-[10px] min-[360px]:text-xs md:text-sm font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">Total Pemasukan</p>
+                  <p className="text-sm min-[360px]:text-base min-[400px]:text-lg sm:text-2xl lg:text-3xl font-extrabold text-gray-900 tracking-tight truncate">{formatRupiah(summary.totalIn)}</p>
+                </div>
+              </div>
+            </div>
+
             {/* Card: Total Pengeluaran */}
             <div 
-              className={`bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-6 shadow-sm border border-gray-100 transition-all`}
+              onClick={() => setTypeFilter('Pengeluaran')}
+              className={`bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-6 shadow-sm border transition-all cursor-pointer hover:shadow-md hover:-translate-y-1 ${
+                typeFilter === 'Pengeluaran' ? 'border-red-500 ring-4 ring-red-50' : 'border-gray-100 hover:border-red-200'
+              }`}
             >
               <div className="flex items-center space-x-3 sm:space-x-5">
                 <div className="p-2.5 sm:p-4 bg-red-50 text-red-600 rounded-xl sm:rounded-2xl shadow-inner shrink-0">
@@ -626,6 +684,26 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
                 <div className="overflow-hidden">
                   <p className="text-[10px] min-[360px]:text-xs md:text-sm font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">Total Pengeluaran Bu Camat</p>
                   <p className="text-sm min-[360px]:text-base min-[400px]:text-lg sm:text-2xl lg:text-3xl font-extrabold text-gray-900 tracking-tight truncate">{formatRupiah(summary.totalOut)}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Card: Saldo Saat Ini */}
+            <div 
+              onClick={() => setTypeFilter('All')}
+              className={`bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-6 shadow-sm border transition-all cursor-pointer hover:shadow-md hover:-translate-y-1 ${
+                typeFilter === 'All' ? 'border-blue-500 ring-4 ring-blue-50' : 'border-gray-100 hover:border-blue-200'
+              }`}
+            >
+              <div className="flex items-center space-x-3 sm:space-x-5">
+                <div className={`p-2.5 sm:p-4 rounded-xl sm:rounded-2xl shadow-inner shrink-0 ${summary.balance >= 0 ? 'bg-blue-50 text-blue-600' : 'bg-red-50 text-red-600'}`}>
+                  <Wallet className="w-6 h-6 sm:w-9 sm:h-9" strokeWidth={2.5} />
+                </div>
+                <div className="overflow-hidden">
+                  <p className="text-[10px] min-[360px]:text-xs md:text-sm font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">Saldo Saat Ini</p>
+                  <p className={`text-sm min-[360px]:text-base min-[400px]:text-lg sm:text-2xl lg:text-3xl font-extrabold tracking-tight truncate ${summary.balance >= 0 ? 'text-gray-900' : 'text-red-600'}`}>
+                    {formatRupiah(Math.abs(summary.balance))}
+                  </p>
                 </div>
               </div>
             </div>
@@ -660,6 +738,13 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
             {/* Right: Add Buttons */}
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full lg:w-auto">
               <button 
+                onClick={() => handleOpenAdd('Pemasukan')}
+                className="flex-1 sm:flex-none flex items-center justify-center space-x-1.5 sm:space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 sm:px-6 sm:py-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm hover:shadow-md active:scale-95"
+              >
+                <Plus className="w-3.5 h-3.5 sm:w-[18px] sm:h-[18px]" strokeWidth={2.5} />
+                <span>Tambah Pemasukan</span>
+              </button>
+              <button 
                 onClick={() => handleOpenAdd('Pengeluaran')}
                 className="flex-1 sm:flex-none flex items-center justify-center space-x-1.5 sm:space-x-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 sm:px-6 sm:py-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm hover:shadow-md active:scale-95"
               >
@@ -673,7 +758,12 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
           <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
             <div className="px-4 py-4 sm:px-6 sm:py-5 border-b border-gray-200 bg-gray-50 flex flex-col sm:flex-row gap-2.5 justify-between sm:items-center">
               <h2 className="text-sm sm:text-lg font-extrabold text-gray-900 tracking-tight flex flex-wrap items-center gap-2">
-                <span>Data Pengeluaran Khusus</span>
+                <span>Data Transaksi Khusus</span>
+                {typeFilter !== 'All' && (
+                  <span className={`text-[10px] sm:text-xs px-2 py-0.5 sm:px-3 sm:py-1 rounded-lg ${typeFilter === 'Pemasukan' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                    Filter: {typeFilter}
+                  </span>
+                )}
               </h2>
               <span className="self-start sm:self-auto text-xs sm:text-sm text-gray-600 font-bold bg-white border border-gray-200 px-3 py-1 sm:px-4 sm:py-1.5 rounded-xl shadow-sm">
                 {displayedTransactions.length} Data Ditemukan
@@ -691,17 +781,27 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
                   <thead>
                     <tr className="bg-white text-gray-500 text-[10px] sm:text-xs uppercase tracking-widest border-b border-gray-200">
                       <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold whitespace-nowrap">Tanggal</th>
+                      <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold whitespace-nowrap">Tipe</th>
                       <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold min-w-[200px]">Keterangan</th>
+                      <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold text-right whitespace-nowrap">Pemasukan</th>
                       <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold text-right whitespace-nowrap">Pengeluaran</th>
+                      <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold text-right whitespace-nowrap">Saldo Berjalan</th>
                       <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold min-w-[200px]">Catatan</th>
                       <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold text-center whitespace-nowrap">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {displayedTransactions.map((tx) => (
+                    {displayedTransactions.map((tx: any) => (
                       <tr key={tx.id} className={`even:bg-gray-50/50 hover:bg-blue-50/50 transition-colors group ${!tx.isIncluded ? 'opacity-60 grayscale-[0.5]' : ''}`}>
                         <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-600">
                           {formatDateDisplay(tx.tanggal)}
+                        </td>
+                        <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2 py-0.5 sm:px-3 sm:py-1 rounded-lg text-[10px] sm:text-xs font-bold ${
+                            tx.tipe === 'Pemasukan' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                          }`}>
+                            {tx.tipe}
+                          </span>
                         </td>
                         <td className="px-3 py-3 sm:px-6 sm:py-4 text-xs sm:text-sm text-gray-900 font-bold">
                           <div className="flex items-center space-x-2">
@@ -718,8 +818,14 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
                             )}
                           </div>
                         </td>
+                        <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-right font-bold text-green-600">
+                          {tx.pemasukan > 0 ? formatRupiah(tx.pemasukan) : '-'}
+                        </td>
                         <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-right font-bold text-red-600">
                           {tx.pengeluaran > 0 ? formatRupiah(tx.pengeluaran) : '-'}
+                        </td>
+                        <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-right font-bold text-blue-600">
+                          {formatRupiah(tx.balance)}
                         </td>
                         <td className="px-3 py-3 sm:px-6 sm:py-4 text-xs sm:text-sm text-gray-500 italic">
                           {tx.catatan || '-'}
@@ -845,7 +951,6 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
                   </label>
                   {imageBase64 && (
                     <div className="h-10 w-10 sm:h-11 sm:w-11 shrink-0 rounded-lg overflow-hidden border border-gray-200 shadow-sm relative group">
-                       {/* Prevent clicking the image from opening the file dialog by placing it outside the label */}
                        <img src={`data:${imageFile?.type};base64,${imageBase64}`} alt="Preview" className="w-full h-full object-cover" />
                        <button onClick={() => { setImageFile(null); setImageBase64(''); }} className="absolute inset-0 bg-black/50 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                          <X className="w-4 h-4" />
@@ -969,7 +1074,7 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
                     </p>
                     <div className="border border-gray-200 rounded-xl overflow-hidden bg-gray-50 text-center relative group">
                       <img 
-                        src={viewTransaction.notaUrl} 
+                        src={getRenderableImageUrl(viewTransaction.notaUrl)} 
                         alt="Nota" 
                         className="w-full h-auto max-h-[50vh] object-contain transition-transform duration-300 mx-auto"
                       />

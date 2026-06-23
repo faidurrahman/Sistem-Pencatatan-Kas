@@ -102,6 +102,26 @@ const parseDateFromAPI = (dateVal: any): string => {
   }
 };
 
+const getRenderableImageUrl = (url: string | undefined): string => {
+  if (!url) return '';
+  if (url.startsWith('data:image')) return url;
+  
+  // Format Drive URL to direct view URL
+  // Matches https://drive.google.com/file/d/FILE_ID/view
+  const dMatch = url.match(/\/d\/([^/]+)/);
+  if (dMatch && dMatch[1]) {
+    return `https://drive.google.com/uc?export=view&id=${dMatch[1]}`;
+  }
+  
+  // Matches https://drive.google.com/open?id=FILE_ID
+  const idMatch = url.match(/[?&]id=([^&]+)/);
+  if (idMatch && idMatch[1]) {
+    return `https://drive.google.com/uc?export=view&id=${idMatch[1]}`;
+  }
+  
+  return url;
+};
+
 // --- Main Component ---
 export default function FinanceApp({ onLogout }: FinanceAppProps) {
   // State: Data
@@ -950,7 +970,6 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
                   </label>
                   {imageBase64 && (
                     <div className="h-10 w-10 sm:h-11 sm:w-11 shrink-0 rounded-lg overflow-hidden border border-gray-200 shadow-sm relative group">
-                       {/* Prevent clicking the image from opening the file dialog by placing it outside the label */}
                        <img src={`data:${imageFile?.type};base64,${imageBase64}`} alt="Preview" className="w-full h-full object-cover" />
                        <button onClick={() => { setImageFile(null); setImageBase64(''); }} className="absolute inset-0 bg-black/50 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                          <X className="w-4 h-4" />
@@ -1074,7 +1093,7 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
                     </p>
                     <div className="border border-gray-200 rounded-xl overflow-hidden bg-gray-50 text-center relative group">
                       <img 
-                        src={viewTransaction.notaUrl} 
+                        src={getRenderableImageUrl(viewTransaction.notaUrl)} 
                         alt="Nota" 
                         className="w-full h-auto max-h-[50vh] object-contain transition-transform duration-300 mx-auto"
                       />
