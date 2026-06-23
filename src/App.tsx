@@ -126,7 +126,7 @@ export default function App() {
             activeTab === 'umum' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          Kas Operasional (Umum)
+          Kas Camat-Camat
         </button>
         <button
           onClick={() => setActiveTab('camat')}
@@ -134,7 +134,7 @@ export default function App() {
              activeTab === 'camat' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          Kas Khusus Bu Camat
+          Kas Khusus Ibu Camat
         </button>
       </div>
       {activeTab === 'umum' ? (
