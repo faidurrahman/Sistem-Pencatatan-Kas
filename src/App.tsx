@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Lock, Key, User } from 'lucide-react';
 import FinanceApp from './components/FinanceApp';
+import CamatApp from './components/CamatApp';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState<'umum' | 'camat'>('umum');
 
   useEffect(() => {
     const auth = localStorage.getItem('isAuth');
@@ -32,6 +34,7 @@ export default function App() {
   };
 
   if (!isLoggedIn) {
+// ...
     return (
       <div className="min-h-screen relative flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100">
         {/* Subtle Geometric Grid Pattern */}
@@ -115,6 +118,30 @@ export default function App() {
   }
 
   return (
-    <FinanceApp onLogout={handleLogout} />
+    <>
+      <div className="fixed top-20 left-0 right-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm flex justify-center space-x-2 p-2">
+        <button
+          onClick={() => setActiveTab('umum')}
+          className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+            activeTab === 'umum' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          Kas Operasional (Umum)
+        </button>
+        <button
+          onClick={() => setActiveTab('camat')}
+          className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+             activeTab === 'camat' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          Kas Khusus Bu Camat
+        </button>
+      </div>
+      {activeTab === 'umum' ? (
+        <FinanceApp onLogout={handleLogout} />
+      ) : (
+        <CamatApp onLogout={handleLogout} />
+      )}
+    </>
   );
 }

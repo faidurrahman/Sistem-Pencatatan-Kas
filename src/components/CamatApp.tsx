@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 // --- API URL ---
-const API_URL = 'https://script.google.com/macros/s/AKfycbzWKeuFQGymd6BoHduTZqciinAivVGz3rBda1tjyhr1xaBGUPC4KTYRl-bbqGxNyliI-g/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzWKeuFQGymd6BoHduTZqciinAivVGz3rBda1tjyhr1xaBGUPC4KTYRl-bbqGxNyliI-g/exec?sheet=Pengeluaran_Camat';
 
 // --- Types ---
 interface Transaction {
@@ -106,8 +106,8 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
   const [isUsingFallback, setIsUsingFallback] = useState<boolean>(false);
   
   // State: Filters
-  const [selectedMonth, setSelectedMonth] = useState<string>('all'); // Default to 'Semua Bulan'
-  const [typeFilter, setTypeFilter] = useState<'All' | 'Pemasukan' | 'Pengeluaran'>('All');
+  const [startDate, setStartDate] = useState<string>(''); 
+  const [endDate, setEndDate] = useState<string>('');
 
   // State: Modal Form
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -206,55 +206,34 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
 
   // --- Derived Data (useMemo) ---
   
-  // 1. Get unique months for dropdown
-  const availableMonths = useMemo(() => {
-    const months = new Set(
-      transactions
-        .map(t => t.tanggal ? t.tanggal.substring(0, 7) : '')
-        .filter(m => m.length >= 7)
-    );
-    return Array.from(months).sort().reverse();
-  }, [transactions]);
-
+  // 1. Get unique months for dropdown (Not needed for date range, kept for reference or removed)
+  
   // 2. Filter and calculate data
   const { displayedTransactions, summary } = useMemo(() => {
-    let monthFiltered = transactions;
-    if (selectedMonth && selectedMonth !== 'all') {
-      monthFiltered = transactions.filter(t => t.tanggal.startsWith(selectedMonth));
-    } else if (!selectedMonth) {
-      monthFiltered = []; 
+    let dateFiltered = transactions;
+    
+    // Filter by date range
+    if (startDate) {
+      dateFiltered = dateFiltered.filter(t => t.tanggal >= startDate);
+    }
+    if (endDate) {
+      dateFiltered = dateFiltered.filter(t => t.tanggal <= endDate);
     }
 
-    let totalIn = 0;
     let totalOut = 0;
-    monthFiltered.forEach(t => {
-      if (t.isIncluded) {
-        totalIn += t.pemasukan;
+    dateFiltered.forEach(t => {
+      if (t.isIncluded && t.tipe === 'Pengeluaran') {
         totalOut += t.pengeluaran;
       }
     });
-    const balance = totalIn - totalOut;
 
-    let typeFiltered = monthFiltered;
-    if (typeFilter !== 'All') {
-      typeFiltered = monthFiltered.filter(t => t.tipe === typeFilter);
-    }
-
-    const sorted = [...typeFiltered].sort((a, b) => a.tanggal.localeCompare(b.tanggal));
-
-    let currentBalance = 0;
-    const processed = sorted.map(t => {
-      if (t.isIncluded) {
-        currentBalance += t.pemasukan - t.pengeluaran;
-      }
-      return { ...t, saldoBerjalan: currentBalance };
-    });
+    const sorted = [...dateFiltered].filter(t => t.tipe === 'Pengeluaran').sort((a, b) => a.tanggal.localeCompare(b.tanggal));
 
     return {
-      displayedTransactions: processed,
-      summary: { totalIn, totalOut, balance }
+      displayedTransactions: sorted,
+      summary: { totalOut }
     };
-  }, [transactions, selectedMonth, typeFilter]);
+  }, [transactions, startDate, endDate]);
 
   // --- Handlers ---
 
@@ -461,10 +440,10 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
             </div>
             <div className="flex flex-col justify-center overflow-hidden">
               <h1 className="text-xs min-[360px]:text-sm sm:text-lg lg:text-2xl font-bold tracking-tight text-gray-900 leading-tight truncate">
-                Sistem Pencatatan Kas <span className="hidden min-[480px]:inline">Operasional</span>
+                Pengeluaran Khusus <span className="hidden min-[480px]:inline">Bu Camat</span>
               </h1>
               <p className="text-[9px] min-[360px]:text-xs lg:text-sm text-gray-500 font-medium truncate">
-                Laporan Operasional Keuangan
+                Laporan Keuangan Ekstra
               </p>
             </div>
           </div>
@@ -538,60 +517,19 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
         {/* The Main White Card Wrapper */}
         <div className="max-w-7xl mx-auto bg-white rounded-2xl sm:rounded-3xl shadow-lg border border-gray-100 p-4 sm:p-8 space-y-6 sm:space-y-8">
           
-          {/* 2. Horizontal Summary Cards Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            {/* Card: Total Pemasukan */}
-            <div 
-              onClick={() => selectedMonth && setTypeFilter('Pemasukan')}
-              className={`bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-6 shadow-sm border transition-all cursor-pointer hover:shadow-md hover:-translate-y-1 ${
-                typeFilter === 'Pemasukan' ? 'border-green-500 ring-4 ring-green-50' : 'border-gray-100 hover:border-green-200'
-              } ${!selectedMonth && 'opacity-50 pointer-events-none'}`}
-            >
-              <div className="flex items-center space-x-3 sm:space-x-5">
-                <div className="p-2.5 sm:p-4 bg-green-50 text-green-600 rounded-xl sm:rounded-2xl shadow-inner shrink-0">
-                  <ArrowDownCircle className="w-6 h-6 sm:w-9 sm:h-9" strokeWidth={2.5} />
-                </div>
-                <div className="overflow-hidden">
-                  <p className="text-[10px] min-[360px]:text-xs md:text-sm font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">Total Pemasukan</p>
-                  <p className="text-sm min-[360px]:text-base min-[400px]:text-lg sm:text-2xl lg:text-3xl font-extrabold text-gray-900 tracking-tight truncate">{formatRupiah(summary.totalIn)}</p>
-                </div>
-              </div>
-            </div>
-
+          {/* 2. Single Summary Card Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-1 gap-4 sm:gap-6">
             {/* Card: Total Pengeluaran */}
             <div 
-              onClick={() => selectedMonth && setTypeFilter('Pengeluaran')}
-              className={`bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-6 shadow-sm border transition-all cursor-pointer hover:shadow-md hover:-translate-y-1 ${
-                typeFilter === 'Pengeluaran' ? 'border-red-500 ring-4 ring-red-50' : 'border-gray-100 hover:border-red-200'
-              } ${!selectedMonth && 'opacity-50 pointer-events-none'}`}
+              className={`bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-6 shadow-sm border border-gray-100 transition-all`}
             >
               <div className="flex items-center space-x-3 sm:space-x-5">
                 <div className="p-2.5 sm:p-4 bg-red-50 text-red-600 rounded-xl sm:rounded-2xl shadow-inner shrink-0">
                   <ArrowUpCircle className="w-6 h-6 sm:w-9 sm:h-9" strokeWidth={2.5} />
                 </div>
                 <div className="overflow-hidden">
-                  <p className="text-[10px] min-[360px]:text-xs md:text-sm font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">Total Pengeluaran</p>
+                  <p className="text-[10px] min-[360px]:text-xs md:text-sm font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">Total Pengeluaran Bu Camat</p>
                   <p className="text-sm min-[360px]:text-base min-[400px]:text-lg sm:text-2xl lg:text-3xl font-extrabold text-gray-900 tracking-tight truncate">{formatRupiah(summary.totalOut)}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Card: Saldo Saat Ini */}
-            <div 
-              onClick={() => selectedMonth && setTypeFilter('All')}
-              className={`bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-6 shadow-sm border transition-all cursor-pointer hover:shadow-md hover:-translate-y-1 ${
-                typeFilter === 'All' && selectedMonth ? 'border-blue-500 ring-4 ring-blue-50' : 'border-gray-100 hover:border-blue-200'
-              } ${!selectedMonth && 'opacity-50 pointer-events-none'}`}
-            >
-              <div className="flex items-center space-x-3 sm:space-x-5">
-                <div className={`p-2.5 sm:p-4 rounded-xl sm:rounded-2xl shadow-inner shrink-0 ${summary.balance >= 0 ? 'bg-blue-50 text-blue-600' : 'bg-red-50 text-red-600'}`}>
-                  <Wallet className="w-6 h-6 sm:w-9 sm:h-9" strokeWidth={2.5} />
-                </div>
-                <div className="overflow-hidden">
-                  <p className="text-[10px] min-[360px]:text-xs md:text-sm font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">Saldo Saat Ini</p>
-                  <p className={`text-sm min-[360px]:text-base min-[400px]:text-lg sm:text-2xl lg:text-3xl font-extrabold tracking-tight truncate ${summary.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {formatRupiah(summary.balance)}
-                  </p>
                 </div>
               </div>
             </div>
@@ -599,36 +537,32 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
 
           {/* 3. Streamlined Controls Container */}
           <div className="flex flex-col lg:flex-row justify-between items-center gap-3 bg-gray-50/80 p-2 sm:p-3 rounded-2xl border border-gray-200">
-            {/* Left: Filter */}
+            {/* Left: Date Range Filter */}
             <div className="flex items-center space-x-2 sm:space-x-3 w-full lg:w-auto">
                <div className="p-2 sm:p-3 bg-white shadow-sm border border-gray-200 rounded-xl text-gray-500 shrink-0">
                 <Calendar className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2.5} />
               </div>
-              <select 
-                value={selectedMonth} 
-                onChange={(e) => {
-                  setSelectedMonth(e.target.value);
-                  setTypeFilter('All');
-                }}
-                className="flex-1 lg:w-72 bg-white border border-gray-200 text-gray-900 text-xs sm:text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-50 focus:border-blue-500 block p-2.5 sm:p-3.5 outline-none transition-all shadow-sm cursor-pointer"
-              >
-                <option value="" disabled>-- Pilih Bulan --</option>
-                <option value="all">Semua Bulan</option>
-                {availableMonths.map(month => (
-                  <option key={month} value={month}>{formatMonthLabel(month)}</option>
-                ))}
-              </select>
+              <div className="flex items-center space-x-2 w-full">
+                <input 
+                  type="date"
+                  value={startDate} 
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="flex-1 lg:w-40 bg-white border border-gray-200 text-gray-900 text-xs sm:text-sm font-semibold rounded-xl focus:ring-4 focus:ring-red-50 focus:border-red-500 block p-2.5 sm:p-3.5 outline-none transition-all shadow-sm cursor-pointer"
+                  placeholder="Mulai"
+                />
+                <span className="text-gray-400 font-medium">s/d</span>
+                <input 
+                  type="date"
+                  value={endDate} 
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="flex-1 lg:w-40 bg-white border border-gray-200 text-gray-900 text-xs sm:text-sm font-semibold rounded-xl focus:ring-4 focus:ring-red-50 focus:border-red-500 block p-2.5 sm:p-3.5 outline-none transition-all shadow-sm cursor-pointer"
+                  placeholder="Sampai"
+                />
+              </div>
             </div>
 
             {/* Right: Add Buttons */}
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full lg:w-auto">
-              <button 
-                onClick={() => handleOpenAdd('Pemasukan')}
-                className="flex-1 sm:flex-none flex items-center justify-center space-x-1.5 sm:space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 sm:px-6 sm:py-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm hover:shadow-md active:scale-95"
-              >
-                <Plus className="w-3.5 h-3.5 sm:w-[18px] sm:h-[18px]" strokeWidth={2.5} />
-                <span>Tambah Pemasukan</span>
-              </button>
               <button 
                 onClick={() => handleOpenAdd('Pengeluaran')}
                 className="flex-1 sm:flex-none flex items-center justify-center space-x-1.5 sm:space-x-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 sm:px-6 sm:py-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm hover:shadow-md active:scale-95"
@@ -643,22 +577,17 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
           <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
             <div className="px-4 py-4 sm:px-6 sm:py-5 border-b border-gray-200 bg-gray-50 flex flex-col sm:flex-row gap-2.5 justify-between sm:items-center">
               <h2 className="text-sm sm:text-lg font-extrabold text-gray-900 tracking-tight flex flex-wrap items-center gap-2">
-                <span>Data Transaksi Keuangan (CRUD)</span>
-                {typeFilter !== 'All' && (
-                  <span className={`text-[10px] sm:text-xs px-2 py-0.5 sm:px-3 sm:py-1 rounded-lg ${typeFilter === 'Pemasukan' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                    Filter: {typeFilter}
-                  </span>
-                )}
+                <span>Data Pengeluaran Khusus</span>
               </h2>
               <span className="self-start sm:self-auto text-xs sm:text-sm text-gray-600 font-bold bg-white border border-gray-200 px-3 py-1 sm:px-4 sm:py-1.5 rounded-xl shadow-sm">
                 {displayedTransactions.length} Data Ditemukan
               </span>
             </div>
 
-            {!selectedMonth ? (
+            {displayedTransactions.length === 0 && (startDate || endDate) ? (
               <div className="flex flex-col items-center justify-center h-[400px] text-gray-400 space-y-4 bg-gray-50/30">
                 <Calendar size={64} className="opacity-20" />
-                <p className="text-lg font-semibold">Silakan pilih bulan untuk melihat data transaksi</p>
+                <p className="text-lg font-semibold">Tidak ada data untuk filter tersebut</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -666,11 +595,8 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
                   <thead>
                     <tr className="bg-white text-gray-500 text-[10px] sm:text-xs uppercase tracking-widest border-b border-gray-200">
                       <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold whitespace-nowrap">Tanggal</th>
-                      <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold whitespace-nowrap">Tipe</th>
                       <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold min-w-[200px]">Keterangan</th>
-                      <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold text-right whitespace-nowrap">Pemasukan</th>
                       <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold text-right whitespace-nowrap">Pengeluaran</th>
-                      <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold text-right whitespace-nowrap">Saldo Berjalan</th>
                       <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold min-w-[200px]">Catatan</th>
                       <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold text-center whitespace-nowrap">Aksi</th>
                     </tr>
@@ -680,13 +606,6 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
                       <tr key={tx.id} className={`even:bg-gray-50/50 hover:bg-blue-50/50 transition-colors group ${!tx.isIncluded ? 'opacity-60 grayscale-[0.5]' : ''}`}>
                         <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-600">
                           {formatDateDisplay(tx.tanggal)}
-                        </td>
-                        <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-2 py-0.5 sm:px-3 sm:py-1 rounded-lg text-[10px] sm:text-xs font-bold ${
-                            tx.tipe === 'Pemasukan' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                          }`}>
-                            {tx.tipe}
-                          </span>
                         </td>
                         <td className="px-3 py-3 sm:px-6 sm:py-4 text-xs sm:text-sm text-gray-900 font-bold">
                           <div className="flex items-center space-x-2">
@@ -698,16 +617,8 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
                             )}
                           </div>
                         </td>
-                        <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-right font-bold text-green-600">
-                          {tx.pemasukan > 0 ? formatRupiah(tx.pemasukan) : '-'}
-                        </td>
                         <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-right font-bold text-red-600">
                           {tx.pengeluaran > 0 ? formatRupiah(tx.pengeluaran) : '-'}
-                        </td>
-                        <td className={`px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-right font-extrabold ${
-                          tx.saldoBerjalan >= 0 ? 'text-gray-900' : 'text-red-600'
-                        }`}>
-                          {tx.isIncluded ? formatRupiah(tx.saldoBerjalan) : <span className="text-gray-300">-</span>}
                         </td>
                         <td className="px-3 py-3 sm:px-6 sm:py-4 text-xs sm:text-sm text-gray-500 italic">
                           {tx.catatan || '-'}
@@ -734,7 +645,7 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
                     ))}
                     {displayedTransactions.length === 0 && (
                       <tr>
-                        <td colSpan={8} className="px-6 py-16 text-center text-gray-400">
+                        <td colSpan={5} className="px-6 py-16 text-center text-gray-400">
                           <div className="flex flex-col items-center space-y-3">
                             <FileText size={48} className="opacity-20" />
                             <p className="text-base font-semibold">Tidak ada data transaksi yang sesuai dengan filter.</p>
@@ -756,7 +667,7 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-gray-100">
             <div className="px-4 py-4 sm:px-6 sm:py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
               <h3 className="text-base sm:text-xl font-extrabold text-gray-900 tracking-tight">
-                {formMode === 'add' ? 'Tambah Transaksi' : 'Edit Transaksi'} <span className={formData.tipe === 'Pemasukan' ? 'text-green-600' : 'text-red-600'}>{formData.tipe}</span>
+                {formMode === 'add' ? 'Tambah Pengeluaran' : 'Edit Pengeluaran'}
               </h3>
               <button 
                 onClick={() => setIsFormOpen(false)}
@@ -775,7 +686,7 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4 sm:gap-5">
+              <div className="grid grid-cols-1 gap-4 sm:gap-5">
                 <div className="space-y-1.5">
                   <label className="text-xs sm:text-sm font-bold text-gray-700">Tanggal</label>
                   <input 
@@ -784,18 +695,6 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
                     onChange={(e) => setFormData({...formData, tanggal: e.target.value})}
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-xs sm:text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-50 focus:border-blue-500 block p-2.5 sm:p-3 outline-none transition-all"
                   />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs sm:text-sm font-bold text-gray-700">Tipe</label>
-                  <select 
-                    value={formData.tipe || 'Pemasukan'}
-                    onChange={(e) => setFormData({...formData, tipe: e.target.value as 'Pemasukan' | 'Pengeluaran'})}
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-xs sm:text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-50 focus:border-blue-500 block p-2.5 sm:p-3 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={formMode === 'add'} 
-                  >
-                    <option value="Pemasukan">Pemasukan</option>
-                    <option value="Pengeluaran">Pengeluaran</option>
-                  </select>
                 </div>
               </div>
 
