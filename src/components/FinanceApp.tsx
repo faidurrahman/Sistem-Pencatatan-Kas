@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 
 // --- API URL ---
-const API_URL = 'https://script.google.com/macros/s/AKfycbyC2XBMtO1XhIVqi_YrpjX2JRRofSBj1khxL_yqQltY3Wc7BDbCR9fySA4BNuZMCcMDIQ/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbyU6xCj72DxvTwmCXhkNZGQd9SNzXJnZy8ItpW5aqAyn5n8F3ueBRqLo6RCcSiwk1Xfgw/exec';
 
 // --- Types ---
 interface Transaction {

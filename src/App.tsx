@@ -3,12 +3,14 @@ import { Lock, Key, User } from 'lucide-react';
 import FinanceApp from './components/FinanceApp';
 import CamatApp from './components/CamatApp';
 
+import LainApp from './components/LainApp';
+
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'umum' | 'camat'>('umum');
+  const [activeTab, setActiveTab] = useState<'umum' | 'camat' | 'lain'>('umum');
 
   useEffect(() => {
     const auth = localStorage.getItem('isAuth');
@@ -136,11 +138,21 @@ export default function App() {
         >
           Kas Ibu Camat
         </button>
+        <button
+          onClick={() => setActiveTab('lain')}
+          className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+             activeTab === 'lain' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          Kas Lain-Lain
+        </button>
       </div>
       {activeTab === 'umum' ? (
         <FinanceApp onLogout={handleLogout} />
-      ) : (
+      ) : activeTab === 'camat' ? (
         <CamatApp onLogout={handleLogout} />
+      ) : (
+        <LainApp onLogout={handleLogout} />
       )}
     </>
   );
