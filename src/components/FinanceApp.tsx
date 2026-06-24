@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 
 // --- API URL ---
-const API_URL = 'https://script.google.com/macros/s/AKfycbyU6xCj72DxvTwmCXhkNZGQd9SNzXJnZy8ItpW5aqAyn5n8F3ueBRqLo6RCcSiwk1Xfgw/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbwyl_yBbToMVqlSQ4zAoNphKEtLkPyzYAng3I87pPnPbC8bPog46WrpAouNBgYfIgWqug/exec';
 
 // --- Types ---
 interface Transaction {
@@ -110,13 +110,13 @@ const getRenderableImageUrl = (url: string | undefined): string => {
   // Matches https://drive.google.com/file/d/FILE_ID/view
   const dMatch = url.match(/\/d\/([^/]+)/);
   if (dMatch && dMatch[1]) {
-    return `https://drive.google.com/uc?export=view&id=${dMatch[1]}`;
+    return `https://drive.google.com/thumbnail?id=${dMatch[1]}&sz=w1000`;
   }
   
   // Matches https://drive.google.com/open?id=FILE_ID
   const idMatch = url.match(/[?&]id=([^&]+)/);
   if (idMatch && idMatch[1]) {
-    return `https://drive.google.com/uc?export=view&id=${idMatch[1]}`;
+    return `https://drive.google.com/thumbnail?id=${idMatch[1]}&sz=w1000`;
   }
   
   return url;
@@ -418,7 +418,7 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
       pengeluaran: !isPemasukan ? nominalNum : 0,
       isIncluded: formData.isIncluded ?? true,
       catatan: formData.catatan || '',
-      notaUrl: imageBase64 ? `data:image/jpeg;base64,${imageBase64}` : (formMode === 'edit' ? formData.notaUrl : '')
+      notaUrl: formMode === 'edit' ? formData.notaUrl : ''
     };
 
     if (isUsingFallback) {
