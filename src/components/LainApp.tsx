@@ -653,7 +653,25 @@ export default function LainApp({ onLogout }: FinanceAppProps) {
         <div className="max-w-7xl mx-auto bg-white rounded-2xl sm:rounded-3xl shadow-lg border border-gray-100 p-4 sm:p-8 space-y-6 sm:space-y-8">
           
           {/* 2. Horizontal Summary Cards Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+            {/* Card: Total Pemasukan */}
+            <div 
+              onClick={() => setTypeFilter('Pemasukan')}
+              className={`bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-6 shadow-sm border transition-all cursor-pointer hover:shadow-md hover:-translate-y-1 ${
+                typeFilter === 'Pemasukan' ? 'border-green-500 ring-4 ring-green-50' : 'border-gray-100 hover:border-green-200'
+              }`}
+            >
+              <div className="flex items-center space-x-3 sm:space-x-5">
+                <div className="p-2.5 sm:p-4 bg-green-50 text-green-600 rounded-xl sm:rounded-2xl shadow-inner shrink-0">
+                  <ArrowDownCircle className="w-6 h-6 sm:w-9 sm:h-9" strokeWidth={2.5} />
+                </div>
+                <div className="overflow-hidden">
+                  <p className="text-[10px] min-[360px]:text-xs md:text-sm font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">Total Pemasukan</p>
+                  <p className="text-sm min-[360px]:text-base min-[400px]:text-lg sm:text-2xl lg:text-3xl font-extrabold text-gray-900 tracking-tight truncate">{formatRupiah(summary.totalIn)}</p>
+                </div>
+              </div>
+            </div>
+
             {/* Card: Total Pengeluaran */}
             <div 
               onClick={() => setTypeFilter('Pengeluaran')}
@@ -666,7 +684,7 @@ export default function LainApp({ onLogout }: FinanceAppProps) {
                   <ArrowUpCircle className="w-6 h-6 sm:w-9 sm:h-9" strokeWidth={2.5} />
                 </div>
                 <div className="overflow-hidden">
-                  <p className="text-[10px] min-[360px]:text-xs md:text-sm font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">Total Pengeluaran Lainya</p>
+                  <p className="text-[10px] min-[360px]:text-xs md:text-sm font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">Total Pengeluaran Lainnya</p>
                   <p className="text-sm min-[360px]:text-base min-[400px]:text-lg sm:text-2xl lg:text-3xl font-extrabold text-gray-900 tracking-tight truncate">{formatRupiah(summary.totalOut)}</p>
                 </div>
               </div>
@@ -684,7 +702,7 @@ export default function LainApp({ onLogout }: FinanceAppProps) {
                   <Wallet className="w-6 h-6 sm:w-9 sm:h-9" strokeWidth={2.5} />
                 </div>
                 <div className="overflow-hidden">
-                  <p className="text-[10px] min-[360px]:text-xs md:text-sm font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">Total Nominal Saldo</p>
+                  <p className="text-[10px] min-[360px]:text-xs md:text-sm font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">Saldo Saat Ini</p>
                   <p className={`text-sm min-[360px]:text-base min-[400px]:text-lg sm:text-2xl lg:text-3xl font-extrabold tracking-tight truncate ${summary.balance >= 0 ? 'text-gray-900' : 'text-red-600'}`}>
                     {formatRupiah(summary.balance)}
                   </p>
@@ -722,6 +740,13 @@ export default function LainApp({ onLogout }: FinanceAppProps) {
             {/* Right: Add Buttons */}
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full lg:w-auto">
               <button 
+                onClick={() => handleOpenAdd('Pemasukan')}
+                className="flex-1 sm:flex-none flex items-center justify-center space-x-1.5 sm:space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 sm:px-6 sm:py-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm hover:shadow-md active:scale-95"
+              >
+                <Plus className="w-3.5 h-3.5 sm:w-[18px] sm:h-[18px]" strokeWidth={2.5} />
+                <span>Tambah Pemasukan</span>
+              </button>
+              <button 
                 onClick={() => handleOpenAdd('Pengeluaran')}
                 className="flex-1 sm:flex-none flex items-center justify-center space-x-1.5 sm:space-x-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 sm:px-6 sm:py-3.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm hover:shadow-md active:scale-95"
               >
@@ -758,9 +783,11 @@ export default function LainApp({ onLogout }: FinanceAppProps) {
                   <thead>
                     <tr className="bg-white text-gray-500 text-[10px] sm:text-xs uppercase tracking-widest border-b border-gray-200">
                       <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold whitespace-nowrap">Tanggal</th>
+                      <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold whitespace-nowrap">Tipe</th>
                       <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold min-w-[200px]">Keterangan</th>
+                      <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold text-right whitespace-nowrap">Pemasukan</th>
                       <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold text-right whitespace-nowrap">Pengeluaran</th>
-                      <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold text-right whitespace-nowrap">Total Kas Guna</th>
+                      <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold text-right whitespace-nowrap">Saldo Berjalan</th>
                       <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold min-w-[200px]">Catatan</th>
                       <th className="px-3 py-3 sm:px-6 sm:py-4 font-bold text-center whitespace-nowrap">Aksi</th>
                     </tr>
@@ -770,6 +797,13 @@ export default function LainApp({ onLogout }: FinanceAppProps) {
                       <tr key={tx.id} className={`even:bg-gray-50/50 hover:bg-blue-50/50 transition-colors group ${!tx.isIncluded ? 'opacity-60 grayscale-[0.5]' : ''}`}>
                         <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-600">
                           {formatDateDisplay(tx.tanggal)}
+                        </td>
+                        <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2 py-0.5 sm:px-3 sm:py-1 rounded-lg text-[10px] sm:text-xs font-bold ${
+                            tx.tipe === 'Pemasukan' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                          }`}>
+                            {tx.tipe}
+                          </span>
                         </td>
                         <td className="px-3 py-3 sm:px-6 sm:py-4 text-xs sm:text-sm text-gray-900 font-bold">
                           <div className="flex items-center space-x-2">
@@ -786,13 +820,14 @@ export default function LainApp({ onLogout }: FinanceAppProps) {
                             )}
                           </div>
                         </td>
+                        <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-right font-bold text-green-600">
+                          {tx.pemasukan > 0 ? formatRupiah(tx.pemasukan) : '-'}
+                        </td>
                         <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-right font-bold text-red-600">
                           {tx.pengeluaran > 0 ? formatRupiah(tx.pengeluaran) : '-'}
                         </td>
-                        <td className={`px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-right font-extrabold ${
-                          tx.balance >= 0 ? 'text-gray-900' : 'text-red-600'
-                        }`}>
-                          {tx.isIncluded ? formatRupiah(tx.balance) : <span className="text-gray-300">-</span>}
+                        <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-right font-bold text-blue-600">
+                          {formatRupiah(tx.balance)}
                         </td>
                         <td className="px-3 py-3 sm:px-6 sm:py-4 text-xs sm:text-sm text-gray-500 italic">
                           {tx.catatan || '-'}
@@ -848,7 +883,7 @@ export default function LainApp({ onLogout }: FinanceAppProps) {
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-gray-100">
             <div className="px-4 py-4 sm:px-6 sm:py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
               <h3 className="text-base sm:text-xl font-extrabold text-gray-900 tracking-tight">
-                {formMode === 'add' ? 'Tambah Pengeluaran' : 'Edit Pengeluaran'}
+                {formMode === 'add' ? 'Tambah Transaksi' : 'Edit Transaksi'} <span className={formData.tipe === 'Pemasukan' ? 'text-green-600' : 'text-red-600'}>{formData.tipe}</span>
               </h3>
               <button 
                 onClick={() => setIsFormOpen(false)}
@@ -867,7 +902,7 @@ export default function LainApp({ onLogout }: FinanceAppProps) {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 gap-4 sm:gap-5">
+              <div className="grid grid-cols-2 gap-4 sm:gap-5">
                 <div className="space-y-1.5">
                   <label className="text-xs sm:text-sm font-bold text-gray-700">Tanggal</label>
                   <input 
@@ -876,6 +911,18 @@ export default function LainApp({ onLogout }: FinanceAppProps) {
                     onChange={(e) => setFormData({...formData, tanggal: e.target.value})}
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-xs sm:text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-50 focus:border-blue-500 block p-2.5 sm:p-3 outline-none transition-all"
                   />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs sm:text-sm font-bold text-gray-700">Tipe</label>
+                  <select 
+                    value={formData.tipe || 'Pemasukan'}
+                    onChange={(e) => setFormData({...formData, tipe: e.target.value as 'Pemasukan' | 'Pengeluaran'})}
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-xs sm:text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-50 focus:border-blue-500 block p-2.5 sm:p-3 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={formMode === 'add'} 
+                  >
+                    <option value="Pemasukan">Pemasukan</option>
+                    <option value="Pengeluaran">Pengeluaran</option>
+                  </select>
                 </div>
               </div>
 

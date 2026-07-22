@@ -883,7 +883,7 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-gray-100">
             <div className="px-4 py-4 sm:px-6 sm:py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
               <h3 className="text-base sm:text-xl font-extrabold text-gray-900 tracking-tight">
-                {formMode === 'add' ? 'Tambah Pengeluaran' : 'Edit Pengeluaran'}
+                {formMode === 'add' ? 'Tambah Transaksi' : 'Edit Transaksi'} <span className={formData.tipe === 'Pemasukan' ? 'text-green-600' : 'text-red-600'}>{formData.tipe}</span>
               </h3>
               <button 
                 onClick={() => setIsFormOpen(false)}
@@ -902,7 +902,7 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 gap-4 sm:gap-5">
+              <div className="grid grid-cols-2 gap-4 sm:gap-5">
                 <div className="space-y-1.5">
                   <label className="text-xs sm:text-sm font-bold text-gray-700">Tanggal</label>
                   <input 
@@ -911,6 +911,18 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
                     onChange={(e) => setFormData({...formData, tanggal: e.target.value})}
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-xs sm:text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-50 focus:border-blue-500 block p-2.5 sm:p-3 outline-none transition-all"
                   />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs sm:text-sm font-bold text-gray-700">Tipe</label>
+                  <select 
+                    value={formData.tipe || 'Pemasukan'}
+                    onChange={(e) => setFormData({...formData, tipe: e.target.value as 'Pemasukan' | 'Pengeluaran'})}
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-xs sm:text-sm font-semibold rounded-xl focus:ring-4 focus:ring-blue-50 focus:border-blue-500 block p-2.5 sm:p-3 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={formMode === 'add'} 
+                  >
+                    <option value="Pemasukan">Pemasukan</option>
+                    <option value="Pengeluaran">Pengeluaran</option>
+                  </select>
                 </div>
               </div>
 
