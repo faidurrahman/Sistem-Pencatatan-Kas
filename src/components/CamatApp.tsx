@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 
 // --- API URL ---
-const API_URL = 'https://script.google.com/macros/s/AKfycbwyl_yBbToMVqlSQ4zAoNphKEtLkPyzYAng3I87pPnPbC8bPog46WrpAouNBgYfIgWqug/exec?sheet=Pengeluaran_Camat';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzMwxW890Mi5oRsk17lk28q1TBz07Tika-hozU5lRPIdWTJXcLDAxTjaIEVPrXu9LlVcA/exec?sheet=Pengeluaran_Camat';
 
 // --- Types ---
 interface Transaction {
@@ -575,7 +575,7 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
             </div>
             <div className="flex flex-col justify-center overflow-hidden">
               <h1 className="text-xs min-[360px]:text-sm sm:text-lg lg:text-2xl font-bold tracking-tight text-gray-900 leading-tight truncate">
-                Pengeluaran Khusus <span className="hidden min-[480px]:inline">Bu Camat</span>
+                Pengeluaran Khusus <span className="hidden min-[480px]:inline">Fuji</span>
               </h1>
               <p className="text-[9px] min-[360px]:text-xs lg:text-sm text-gray-500 font-medium truncate">
                 Laporan Keuangan Ekstra
@@ -684,7 +684,7 @@ export default function FinanceApp({ onLogout }: FinanceAppProps) {
                   <ArrowUpCircle className="w-6 h-6 sm:w-9 sm:h-9" strokeWidth={2.5} />
                 </div>
                 <div className="overflow-hidden">
-                  <p className="text-[10px] min-[360px]:text-xs md:text-sm font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">Total Pengeluaran Bu Camat</p>
+                  <p className="text-[10px] min-[360px]:text-xs md:text-sm font-bold text-gray-400 uppercase tracking-widest mb-1 truncate">Total Pengeluaran Fuji</p>
                   <p className="text-sm min-[360px]:text-base min-[400px]:text-lg sm:text-2xl lg:text-3xl font-extrabold text-gray-900 tracking-tight truncate">{formatRupiah(summary.totalOut)}</p>
                 </div>
               </div>

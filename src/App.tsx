@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, Key, User } from 'lucide-react';
+import { Lock, Key, User, Loader2 } from 'lucide-react';
 import FinanceApp from './components/FinanceApp';
 import CamatApp from './components/CamatApp';
-
 import LainApp from './components/LainApp';
+import UserManagement from './components/UserManagement';
+import ChangePassword from './components/ChangePassword';
+
+const API_URL = 'https://script.google.com/macros/s/AKfycbzMwxW890Mi5oRsk17lk28q1TBz07Tika-hozU5lRPIdWTJXcLDAxTjaIEVPrXu9LlVcA/exec';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'umum' | 'camat' | 'lain'>('umum');
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'umum' | 'camat' | 'lain' | 'pengaturan'>('umum');
 
   useEffect(() => {
     const auth = localStorage.getItem('isAuth');
@@ -19,14 +23,37 @@ export default function App() {
     }
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (username === 'admin' && password === 'samiun15') {
-      localStorage.setItem('isAuth', 'true');
-      setIsLoggedIn(true);
-      setError('');
-    } else {
-      setError('Username atau password salah!');
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8',
+        },
+        body: JSON.stringify({
+          action: 'login',
+          username: username,
+          password: password
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success || result.status === 'success') {
+        localStorage.setItem('isAuth', 'true');
+        setIsLoggedIn(true);
+        setError('');
+      } else {
+        setError(result.message || 'Username atau password salah!');
+      }
+    } catch (error) {
+      setError('Terjadi kesalahan jaringan.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -109,9 +136,14 @@ export default function App() {
 
             <button
               type="submit"
-              className="w-full mt-2 bg-gradient-to-r from-blue-600 to-blue-800 text-white py-4 rounded-2xl font-bold text-lg hover:from-blue-700 hover:to-blue-900 transition-all shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 hover:-translate-y-0.5 active:translate-y-0"
+              disabled={isLoading}
+              className="w-full mt-2 flex justify-center items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-800 text-white py-4 rounded-2xl font-bold text-lg hover:from-blue-700 hover:to-blue-900 transition-all shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
             >
-              Masuk
+              {isLoading ? (
+                <Loader2 className="w-6 h-6 animate-spin" />
+              ) : (
+                <span>Masuk</span>
+              )}
             </button>
           </form>
         </div>
@@ -136,7 +168,7 @@ export default function App() {
              activeTab === 'camat' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          Kas Ibu Camat
+          Kas Fuji
         </button>
         <button
           onClick={() => setActiveTab('lain')}
@@ -146,13 +178,30 @@ export default function App() {
         >
           Kas Lain-Lain
         </button>
+        <button
+          onClick={() => setActiveTab('pengaturan')}
+          className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+             activeTab === 'pengaturan' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          Pengaturan
+        </button>
       </div>
       {activeTab === 'umum' ? (
         <FinanceApp onLogout={handleLogout} />
       ) : activeTab === 'camat' ? (
         <CamatApp onLogout={handleLogout} />
-      ) : (
+      ) : activeTab === 'lain' ? (
         <LainApp onLogout={handleLogout} />
+      ) : (
+        <div className="pt-40 pb-20 px-4 min-h-screen bg-gray-50/50 flex flex-col lg:flex-row gap-8 items-start justify-center max-w-7xl mx-auto">
+          <div className="w-full lg:w-1/2">
+            <UserManagement />
+          </div>
+          <div className="w-full lg:w-1/2">
+            <ChangePassword />
+          </div>
+        </div>
       )}
     </>
   );
