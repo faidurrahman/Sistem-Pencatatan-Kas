@@ -6,7 +6,7 @@ import LainApp from './components/LainApp';
 import UserManagement from './components/UserManagement';
 import ChangePassword from './components/ChangePassword';
 
-const API_URL = 'https://script.google.com/macros/s/AKfycbzMwxW890Mi5oRsk17lk28q1TBz07Tika-hozU5lRPIdWTJXcLDAxTjaIEVPrXu9LlVcA/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbziWU6a9sDuyiVjxJsBCVWLCKb1yUOTARammuzSIxdVz10Yr3yG5fdyuraubN5IpVwsLQ/exec';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -29,29 +29,31 @@ export default function App() {
     setError('');
 
     try {
-      const response = await fetch(`${API_URL}?sheet=Users`);
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8',
+        },
+        body: JSON.stringify({
+          action: 'login',
+          username: username,
+          password: password
+        }),
+        redirect: 'follow'
+      });
       const result = await response.json();
       
-      if (result.status === 'success' && Array.isArray(result.data)) {
-        // Find matching user
-        // Note: Because the GAS script is generic, it maps column C (username) to 'tipe' 
-        // and column D (password) to 'keterangan' based on its standard column index assumptions
-        const user = result.data.find((u: any) => 
-          (u.tipe === username && u.keterangan === password) || // Map from generic response
-          (u.username === username && u.password === password) // In case GAS is updated to send correct keys
-        );
-
-        if (user) {
-          localStorage.setItem('isAuth', 'true');
-          // Store role if available, fallback to default mapping (if GAS is updated it might be in u.role)
-          localStorage.setItem('userRole', user.role || 'User');
-          setIsLoggedIn(true);
-          setError('');
+      if (result.success || result.status === 'success') {
+        localStorage.setItem('isAuth', 'true');
+        if (result.data && result.data.role) {
+          localStorage.setItem('userRole', result.data.role);
         } else {
-          setError('Username atau password salah!');
+          localStorage.setItem('userRole', 'User');
         }
+        setIsLoggedIn(true);
+        setError('');
       } else {
-        setError('Gagal mengambil data user.');
+        setError(result.message || 'Username atau password salah!');
       }
     } catch (error) {
       setError('Terjadi kesalahan jaringan.');

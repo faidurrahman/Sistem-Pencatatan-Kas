@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { UserPlus, User, Lock, Tag, Loader2, CheckCircle2, XCircle } from 'lucide-react';
 
-const API_URL = 'https://script.google.com/macros/s/AKfycbzMwxW890Mi5oRsk17lk28q1TBz07Tika-hozU5lRPIdWTJXcLDAxTjaIEVPrXu9LlVcA/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbziWU6a9sDuyiVjxJsBCVWLCKb1yUOTARammuzSIxdVz10Yr3yG5fdyuraubN5IpVwsLQ/exec';
 
 export default function UserManagement() {
   const [formData, setFormData] = useState({
@@ -31,7 +31,8 @@ export default function UserManagement() {
           username: formData.username,
           password: formData.password,
           role: formData.role
-        })
+        }),
+        redirect: 'follow'
       });
 
       const result = await response.json();
